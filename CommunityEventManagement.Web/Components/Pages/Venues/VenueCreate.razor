@@ -1,0 +1,116 @@
+@page "/venues/create"
+@page "/venues/edit/{Id:int}"
+@inject IVenueService VenueService
+@inject NavigationManager Navigation
+
+<PageTitle>@(Id == 0 ? "Add Venue" : "Edit Venue")</PageTitle>
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="fw-bold mb-0">
+            <i class="bi bi-geo-alt"></i>
+            @(Id == 0 ? "Add Venue" : "Edit Venue")
+        </h1>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <AlertMessage Message="@_error" Type="danger"
+                                  OnDismissed="@(()=>_error=string.Empty)" />
+
+                    <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-warning" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Venue Name *
+                            </label>
+                            <InputText @bind-Value="_model.Name"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.Name)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Street Address *
+                            </label>
+                            <InputText @bind-Value="_model.Address"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.Address)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">City *</label>
+                            <InputText @bind-Value="_model.City"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.City)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Maximum Capacity *
+                            </label>
+                            <InputNumber @bind-Value="_model.MaxCapacity"
+                                         class="form-control" />
+                            <ValidationMessage For="@(()=>_model.MaxCapacity)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary"
+                                    disabled="@_submitting">
+                                <i class="bi bi-check-circle"></i>
+                                @(Id == 0 ? "Add Venue" : "Save Changes")
+                            </button>
+                            <a href="/venues" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Cancel
+                            </a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private CreateVenueModel _model = new();
+    private bool _submitting;
+    private string _error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            var v = await VenueService.GetVenueByIdAsync(Id);
+            if (v != null) _model = CreateVenueModel.FromEntity(v);
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            _submitting = true;
+            if (Id == 0)
+                await VenueService.CreateVenueAsync(
+                    _model.Name, _model.Address, _model.City, _model.MaxCapacity);
+            else
+                await VenueService.UpdateVenueAsync(
+                    Id, _model.Name, _model.Address, _model.City, _model.MaxCapacity);
+
+            Navigation.NavigateTo("/venues");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _submitting = false; }
+    }
+}

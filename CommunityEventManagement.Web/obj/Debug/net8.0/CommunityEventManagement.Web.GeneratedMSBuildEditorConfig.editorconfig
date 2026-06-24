@@ -1,0 +1,115 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = CommunityEventManagement.Web
+build_property.RootNamespace = CommunityEventManagement.Web
+build_property.ProjectDir = /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web
+build_property._RazorSourceGeneratorDebug = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Activities/ActivityCreate.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BY3Rpdml0aWVzL0FjdGl2aXR5Q3JlYXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Activities/ActivityList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BY3Rpdml0aWVzL0FjdGl2aXR5TGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db3VudGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Events/EventCreate.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdmVudHMvRXZlbnRDcmVhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Events/EventDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdmVudHMvRXZlbnREZXRhaWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Events/EventEdit.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdmVudHMvRXZlbnRFZGl0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Events/EventList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FdmVudHMvRXZlbnRMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ib21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Participants/ParticipantCreate.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJ0aWNpcGFudHMvUGFydGljaXBhbnRDcmVhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Participants/ParticipantDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJ0aWNpcGFudHMvUGFydGljaXBhbnREZXRhaWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Participants/ParticipantList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJ0aWNpcGFudHMvUGFydGljaXBhbnRMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Registrations/RegistrationList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9SZWdpc3RyYXRpb25zL1JlZ2lzdHJhdGlvbkxpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Venues/VenueCreate.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9WZW51ZXMvVmVudWVDcmVhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Venues/VenueList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9WZW51ZXMvVmVudWVMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9XZWF0aGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Sb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Shared/AlertMessage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvQWxlcnRNZXNzYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Shared/ConfirmDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvQ29uZmlybURpYWxvZy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Shared/LoadingSpinner.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TaGFyZWQvTG9hZGluZ1NwaW5uZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9fSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-9r8g05c9wx
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-8zbzyxg134

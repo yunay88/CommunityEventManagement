@@ -1,0 +1,195 @@
+@page "/participants"
+@inject IParticipantService ParticipantService
+@inject NavigationManager Navigation
+
+<PageTitle>Participants</PageTitle>
+
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="fw-bold mb-0">
+                    <i class="bi bi-people"></i> Participants
+                </h1>
+            </div>
+            <div class="col-auto">
+                <a href="/participants/create" class="btn btn-primary">
+                    <i class="bi bi-person-plus"></i> Add Participant
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    <AlertMessage Message="@_successMessage" Type="success"
+                  OnDismissed="@(() => _successMessage = string.Empty)" />
+    <AlertMessage Message="@_errorMessage" Type="danger"
+                  OnDismissed="@(() => _errorMessage = string.Empty)" />
+
+    <!-- Search -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input class="form-control"
+                       placeholder="Search by name or email..."
+                       @bind="_searchTerm"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <button class="btn btn-outline-secondary"
+                            @onclick="() => _searchTerm = string.Empty">
+                        <i class="bi bi-x"></i>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <LoadingSpinner IsLoading="@_isLoading" />
+
+    @if (!_isLoading)
+    {
+        var filtered = string.IsNullOrWhiteSpace(_searchTerm)
+            ? _participants
+            : _participants.Where(p =>
+                p.FullName.Contains(_searchTerm,
+                    StringComparison.OrdinalIgnoreCase) ||
+                p.Email.Contains(_searchTerm,
+                    StringComparison.OrdinalIgnoreCase)).ToList();
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <span class="fw-semibold">
+                    @filtered.Count participant(s)
+                </span>
+            </div>
+            <div class="card-body p-0">
+                @if (!filtered.Any())
+                {
+                    <div class="empty-state p-5">
+                        <i class="bi bi-person-x display-3"></i>
+                        <h5 class="mt-3">No participants found</h5>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Registrations</th>
+                                    <th>Joined</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in filtered)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@p.FullName</td>
+                                        <td>@p.Email</td>
+                                        <td>@(p.PhoneNumber ?? "—")</td>
+                                        <td>
+                                            <span class="badge bg-primary">
+                                                @p.ActiveRegistrations
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @p.CreatedAt.ToString("dd/MM/yyyy")
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="/participants/@p.Id"
+                                                   class="btn btn-sm
+                                                          btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button class="btn btn-sm
+                                                               btn-outline-danger"
+                                                        @onclick="() =>
+                                                            ShowDelete(p.Id, p.FullName)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<ConfirmDialog IsVisible="@_showDelete"
+               Title="Delete Participant"
+               Message="@($"Delete '{_deleteName}'? This cannot be undone.")"
+               ConfirmText="Delete"
+               OnConfirm="ConfirmDelete"
+               OnCancel="@(() => _showDelete = false)" />
+
+@code {
+    private List<ParticipantViewModel> _participants = new();
+    private string _searchTerm = string.Empty;
+    private bool _isLoading = true;
+    private bool _showDelete = false;
+    private int _deleteId;
+    private string _deleteName = string.Empty;
+    private string _successMessage = string.Empty;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            var all = await ParticipantService.GetAllParticipantsAsync();
+            _participants = all.Select(ParticipantViewModel.FromEntity).ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ShowDelete(int id, string name)
+    {
+        _deleteId = id;
+        _deleteName = name;
+        _showDelete = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        try
+        {
+            _showDelete = false;
+            await ParticipantService.DeleteParticipantAsync(_deleteId);
+            _successMessage = $"Participant '{_deleteName}' deleted.";
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

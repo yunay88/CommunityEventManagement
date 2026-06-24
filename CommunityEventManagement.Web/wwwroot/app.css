@@ -1,0 +1,84 @@
+/* ── Global Styles ─────────────────────────────── */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* ── Event Cards ───────────────────────────────── */
+.event-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* ── Page Headers ──────────────────────────────── */
+.page-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+/* ── Status Badges ─────────────────────────────── */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+    border-radius: 20px;
+}
+
+/* ── Forms ─────────────────────────────────────── */
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* ── Tables ─────────────────────────────────────── */
+.table th {
+    background-color: #f1f3f5;
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+}
+
+/* ── Loading Spinner ───────────────────────────── */
+.loading-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+/* ── Alert fade ────────────────────────────────── */
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+/* ── Navbar active link ────────────────────────── */
+.navbar .nav-link.active {
+    color: #fff !important;
+    font-weight: 600;
+    border-bottom: 2px solid #0d6efd;
+}
+
+/* ── Dashboard cards ───────────────────────────── */
+.stat-card {
+    border-radius: 16px;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+/* ── Empty state ───────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}

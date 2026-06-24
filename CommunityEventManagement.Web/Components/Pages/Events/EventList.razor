@@ -1,0 +1,281 @@
+@page "/events"
+@using CommunityEventManagement.Infrastructure.Patterns.Facade
+@using CommunityEventManagement.Domain.Interfaces.Services
+@using CommunityEventManagement.Web.ViewModels
+@inject IEventService EventService
+@inject IVenueService VenueService
+@inject NavigationManager Navigation
+
+<PageTitle>Events — Community Events</PageTitle>
+
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="fw-bold mb-0">
+                    <i class="bi bi-calendar3"></i> Events
+                </h1>
+            </div>
+            <div class="col-auto">
+                <a href="/events/create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create Event
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    <AlertMessage Message="@_successMessage" Type="success"
+                  OnDismissed="@(() => _successMessage = string.Empty)" />
+    <AlertMessage Message="@_errorMessage" Type="danger"
+                  OnDismissed="@(() => _errorMessage = string.Empty)" />
+
+    <!-- Filter Panel -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h6 class="mb-0 fw-bold">
+                <i class="bi bi-funnel"></i> Filter Events
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Search</label>
+                    <input class="form-control" placeholder="Search events..."
+                           @bind="_filter.SearchTerm"
+                           @bind:event="oninput" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">From Date</label>
+                    <input type="date" class="form-control"
+                           @bind="_filter.StartDate" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">To Date</label>
+                    <input type="date" class="form-control"
+                           @bind="_filter.EndDate" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Venue</label>
+                    <select class="form-select" @bind="_filter.VenueId">
+                        <option value="">All Venues</option>
+                        @foreach (var venue in _venues)
+                        {
+                            <option value="@venue.Id">@venue.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">
+                        Activity Type
+                    </label>
+                    <select class="form-select" @bind="_filter.ActivityType">
+                        <option value="">All Types</option>
+                        @foreach (var type in Enum.GetValues<ActivityType>())
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end gap-1">
+                    <button class="btn btn-primary"
+                            @onclick="ApplyFilter">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary"
+                            @onclick="ClearFilter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <LoadingSpinner IsLoading="@_isLoading" />
+
+    @if (!_isLoading)
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small">
+                Showing @_events.Count event(s)
+                @if (_filter.HasFilters)
+                {
+                    <span class="badge bg-info ms-2">Filtered</span>
+                }
+            </span>
+        </div>
+
+        @if (!_events.Any())
+        {
+            <div class="empty-state card shadow-sm">
+                <i class="bi bi-calendar-x display-3"></i>
+                <h5 class="mt-3">No events found</h5>
+                <p class="text-muted">Try adjusting your filters</p>
+                <a href="/events/create" class="btn btn-primary">
+                    Create Event
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var evt in _events)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card event-card h-100 shadow-sm">
+                            <div class="card-header d-flex
+                                        justify-content-between align-items-center">
+                                <span class="badge bg-@evt.StatusColour">
+                                    @evt.StatusBadge
+                                </span>
+                                <small class="text-muted">
+                                    @evt.DurationFormatted
+                                </small>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">@evt.Name</h5>
+                                <p class="card-text text-muted small">
+                                    @(evt.Description.Length > 100
+                                        ? evt.Description[..100] + "..."
+                                        : evt.Description)
+                                </p>
+                                <ul class="list-unstyled small mb-2">
+                                    <li>
+                                        <i class="bi bi-calendar3
+                                                  text-primary me-1"></i>
+                                        @evt.StartDate.ToString(
+                                            "ddd dd MMM yyyy, HH:mm")
+                                    </li>
+                                    @if (!string.IsNullOrEmpty(evt.VenueName))
+                                    {
+                                        <li>
+                                            <i class="bi bi-geo-alt
+                                                      text-danger me-1"></i>
+                                            @evt.VenueName
+                                        </li>
+                                    }
+                                    <li>
+                                        <i class="bi bi-people
+                                                  text-success me-1"></i>
+                                        @evt.ParticipantCount participant(s)
+                                    </li>
+                                </ul>
+                                @if (evt.ActivityNames.Any())
+                                {
+                                    <div>
+                                        @foreach (var a in evt.ActivityNames.Take(3))
+                                        {
+                                            <span class="badge bg-light
+                                                         text-dark me-1">
+                                                @a
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex gap-2">
+                                    <a href="/events/@evt.Id"
+                                       class="btn btn-outline-primary
+                                              btn-sm flex-grow-1">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a href="/events/edit/@evt.Id"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick="() => ShowDeleteConfirm(evt.Id, evt.Name)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<ConfirmDialog IsVisible="@_showDeleteDialog"
+               Title="Delete Event"
+               Message="@($"Are you sure you want to delete '{_deleteEventName}'? This cannot be undone.")"
+               ConfirmText="Delete"
+               OnConfirm="ConfirmDelete"
+               OnCancel="@(() => _showDeleteDialog = false)" />
+
+@code {
+    private List<EventViewModel> _events = new();
+    private List<VenueViewModel> _venues = new();
+    private EventFilterModel _filter = new();
+    private bool _isLoading = true;
+    private string _successMessage = string.Empty;
+    private string _errorMessage = string.Empty;
+    private bool _showDeleteDialog = false;
+    private int _deleteEventId;
+    private string _deleteEventName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            var events = await EventService.FilterEventsAsync(
+                _filter.ToFilterCriteria());
+            _events = events.Select(EventViewModel.FromEntity).ToList();
+
+            var venues = await VenueService.GetAllVenuesAsync();
+            _venues = venues.Select(VenueViewModel.FromEntity).ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error loading events: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ApplyFilter()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task ClearFilter()
+    {
+        _filter = new EventFilterModel();
+        await LoadDataAsync();
+    }
+
+    private void ShowDeleteConfirm(int id, string name)
+    {
+        _deleteEventId = id;
+        _deleteEventName = name;
+        _showDeleteDialog = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        try
+        {
+            _showDeleteDialog = false;
+            await EventService.DeleteEventAsync(_deleteEventId);
+            _successMessage = $"Event '{_deleteEventName}' deleted successfully.";
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error deleting event: {ex.Message}";
+        }
+    }
+}

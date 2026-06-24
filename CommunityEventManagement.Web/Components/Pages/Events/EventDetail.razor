@@ -1,0 +1,387 @@
+@page "/events/{Id:int}"
+@inject IEventService EventService
+@inject IRegistrationService RegistrationService
+@inject IParticipantService ParticipantService
+@inject NavigationManager Navigation
+
+<PageTitle>@(_event?.Name ?? "Event Detail")</PageTitle>
+
+<LoadingSpinner IsLoading="@_isLoading" />
+
+@if (!_isLoading && _event != null)
+{
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-1">
+                            <li class="breadcrumb-item">
+                                <a href="/events" class="text-light">Events</a>
+                            </li>
+                            <li class="breadcrumb-item active text-white">
+                                @_event.Name
+                            </li>
+                        </ol>
+                    </nav>
+                    <h1 class="fw-bold mb-0">@_event.Name</h1>
+                    <span class="badge bg-@_event.StatusColour mt-2">
+                        @_event.StatusBadge
+                    </span>
+                </div>
+                <div class="col-auto d-flex gap-2">
+                    <a href="/events/edit/@_event.Id"
+                       class="btn btn-outline-light">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <a href="/events"
+                       class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+
+        <AlertMessage Message="@_successMessage" Type="success"
+                      OnDismissed="@(() => _successMessage = string.Empty)" />
+        <AlertMessage Message="@_errorMessage" Type="danger"
+                      OnDismissed="@(() => _errorMessage = string.Empty)" />
+
+        <div class="row g-4">
+
+            <!-- Event Details -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">
+                        <i class="bi bi-info-circle text-primary"></i>
+                        Event Details
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">@_event.Description</p>
+                        <hr />
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar3 text-primary fs-5"></i>
+                                    <div>
+                                        <div class="small text-muted">Start</div>
+                                        <strong>
+                                            @_event.StartDate.ToString(
+                                                "ddd dd MMM yyyy, HH:mm")
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar3-range
+                                              text-danger fs-5"></i>
+                                    <div>
+                                        <div class="small text-muted">End</div>
+                                        <strong>
+                                            @_event.EndDate.ToString(
+                                                "ddd dd MMM yyyy, HH:mm")
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-clock text-warning fs-5"></i>
+                                    <div>
+                                        <div class="small text-muted">Duration</div>
+                                        <strong>@_event.DurationFormatted</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(_event.VenueName))
+                            {
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-geo-alt
+                                                  text-danger fs-5"></i>
+                                        <div>
+                                            <div class="small text-muted">
+                                                Venue
+                                            </div>
+                                            <strong>@_event.VenueName</strong>
+                                            <div class="small text-muted">
+                                                @_event.VenueLocation
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activities -->
+                @if (_event.Activities.Any())
+                {
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white fw-bold">
+                            <i class="bi bi-lightning text-warning"></i>
+                            Activities (@_event.Activities.Count)
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                @foreach (var activity in _event.Activities)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-2 d-flex
+                                                    align-items-center gap-2">
+                                            <span class="badge bg-primary">
+                                                @activity.TypeName
+                                            </span>
+                                            <span>@activity.Name</span>
+                                            <small class="text-muted ms-auto">
+                                                @activity.DurationFormatted
+                                            </small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Registrations -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold">
+                        <i class="bi bi-people text-success"></i>
+                        Registered Participants (@_event.Registrations.Count)
+                    </div>
+                    <div class="card-body p-0">
+                        @if (!_event.Registrations.Any())
+                        {
+                            <div class="p-4 text-center text-muted">
+                                No registrations yet.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Participant</th>
+                                            <th>Email</th>
+                                            <th>Registered</th>
+                                            <th>Status</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var reg in _event.Registrations)
+                                        {
+                                            <tr>
+                                                <td>@reg.ParticipantName</td>
+                                                <td>@reg.ParticipantEmail</td>
+                                                <td>
+                                                    @reg.RegistrationDate.ToString(
+                                                        "dd/MM/yyyy")
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-@reg.StatusColour">
+                                                        @reg.StatusName
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    @if (reg.Status != Domain.Enums.RegistrationStatus.Cancelled)
+                                                    {
+                                                        <button class="btn btn-sm
+                                                                       btn-outline-danger"
+                                                                @onclick="() => CancelReg(reg.Id)">
+                                                            Cancel
+                                                        </button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+
+                <!-- Register Panel -->
+                @if (_event.IsUpcoming || _event.IsActive)
+                {
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white fw-bold">
+                            <i class="bi bi-person-plus"></i>
+                            Register Participant
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Select Participant
+                                </label>
+                                <select class="form-select"
+                                        @bind="_selectedParticipantId">
+                                    <option value="0">
+                                        -- Select Participant --
+                                    </option>
+                                    @foreach (var p in _participants)
+                                    {
+                                        <option value="@p.Id">
+                                            @p.FullName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Notes (optional)
+                                </label>
+                                <textarea class="form-control" rows="2"
+                                          @bind="_registrationNotes"
+                                          placeholder="Any notes...">
+                                </textarea>
+                            </div>
+                            <button class="btn btn-primary w-100"
+                                    @onclick="RegisterParticipant"
+                                    disabled="@(_selectedParticipantId == 0
+                                               || _isRegistering)">
+                                @if (_isRegistering)
+                                {
+                                    <span class="spinner-border
+                                                 spinner-border-sm me-1"></span>
+                                }
+                                <i class="bi bi-person-check"></i> Register
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                <!-- Stats Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold">
+                        <i class="bi bi-bar-chart"></i> Statistics
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Participants</span>
+                            <strong>@_event.ParticipantCount</strong>
+                        </div>
+                        @if (_event.VenueMaxCapacity.HasValue)
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Venue Capacity</span>
+                                <strong>@_event.VenueMaxCapacity</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Occupancy</span>
+                                <strong>@_event.VenueOccupancyRate%</strong>
+                            </div>
+                            <div class="progress" style="height:8px;">
+                                <div class="progress-bar"
+                                     style="width:@_event.VenueOccupancyRate%">
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!_isLoading && _event == null)
+{
+    <div class="container py-5 text-center">
+        <i class="bi bi-calendar-x display-1 text-muted"></i>
+        <h3 class="mt-3">Event Not Found</h3>
+        <a href="/events" class="btn btn-primary mt-2">Back to Events</a>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private EventDetailViewModel? _event;
+    private List<ParticipantViewModel> _participants = new();
+    private bool _isLoading = true;
+    private bool _isRegistering = false;
+    private int _selectedParticipantId;
+    private string _registrationNotes = string.Empty;
+    private string _successMessage = string.Empty;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            var eventEntity = await EventService.GetEventWithDetailsAsync(Id);
+            _event = eventEntity != null
+                ? EventDetailViewModel.FromEntity(eventEntity)
+                : null;
+
+            var participants = await ParticipantService.GetAllParticipantsAsync();
+            _participants = participants
+                .Select(ParticipantViewModel.FromEntity).ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error loading event: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task RegisterParticipant()
+    {
+        if (_selectedParticipantId == 0) return;
+
+        try
+        {
+            _isRegistering = true;
+            await RegistrationService.RegisterParticipantAsync(
+                _selectedParticipantId, Id, _registrationNotes);
+
+            _successMessage = "Participant registered successfully!";
+            _selectedParticipantId = 0;
+            _registrationNotes = string.Empty;
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isRegistering = false;
+        }
+    }
+
+    private async Task CancelReg(int registrationId)
+    {
+        try
+        {
+            await RegistrationService.CancelRegistrationAsync(registrationId);
+            _successMessage = "Registration cancelled.";
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

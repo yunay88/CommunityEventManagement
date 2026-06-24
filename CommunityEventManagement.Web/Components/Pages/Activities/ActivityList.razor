@@ -1,0 +1,126 @@
+@page "/activities"
+@inject IActivityService ActivityService
+
+<PageTitle>Activities</PageTitle>
+
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="fw-bold mb-0">
+                    <i class="bi bi-lightning"></i> Activities
+                </h1>
+            </div>
+            <div class="col-auto">
+                <a href="/activities/create" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Add Activity
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <AlertMessage Message="@_success" Type="success"
+                  OnDismissed="@(() => _success = string.Empty)" />
+    <AlertMessage Message="@_error" Type="danger"
+                  OnDismissed="@(() => _error = string.Empty)" />
+
+    <LoadingSpinner IsLoading="@_loading" />
+
+    @if (!_loading)
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Duration</th>
+                            <th>Description</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _activities)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@a.Name</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">
+                                        @a.TypeName
+                                    </span>
+                                </td>
+                                <td>@a.DurationFormatted</td>
+                                <td class="text-muted small">
+                                    @(a.Description.Length > 60
+                                        ? a.Description[..60] + "..."
+                                        : a.Description)
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="/activities/edit/@a.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => ShowDelete(a.Id, a.Name)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<ConfirmDialog IsVisible="@_showDelete"
+               Title="Delete Activity"
+               Message="@($"Delete '{_deleteName}'?")"
+               OnConfirm="DoDelete"
+               OnCancel="@(() => _showDelete = false)" />
+
+@code {
+    private List<ActivityViewModel> _activities = new();
+    private bool _loading = true;
+    private bool _showDelete;
+    private int _deleteId;
+    private string _deleteName = string.Empty;
+    private string _success = string.Empty;
+    private string _error = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        try
+        {
+            _loading = true;
+            var all = await ActivityService.GetAllActivitiesAsync();
+            _activities = all.Select(ActivityViewModel.FromEntity).ToList();
+        }
+        finally { _loading = false; }
+    }
+
+    private void ShowDelete(int id, string name)
+    {
+        _deleteId = id; _deleteName = name; _showDelete = true;
+    }
+
+    private async Task DoDelete()
+    {
+        try
+        {
+            _showDelete = false;
+            await ActivityService.DeleteActivityAsync(_deleteId);
+            _success = $"Activity deleted.";
+            await Load();
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+}

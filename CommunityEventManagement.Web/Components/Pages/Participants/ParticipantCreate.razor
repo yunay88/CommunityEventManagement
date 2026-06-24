@@ -1,0 +1,152 @@
+@page "/participants/create"
+@inject IParticipantService ParticipantService
+@inject NavigationManager Navigation
+
+<PageTitle>Add Participant</PageTitle>
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="fw-bold mb-0">
+            <i class="bi bi-person-plus"></i> Add Participant
+        </h1>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+
+                    <AlertMessage Message="@_errorMessage" Type="danger"
+                                  OnDismissed="@(()=>_errorMessage=string.Empty)" />
+
+                    <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-warning" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    First Name <span class="text-danger">*</span>
+                                </label>
+                                <InputText @bind-Value="_model.FirstName"
+                                           class="form-control"
+                                           placeholder="First name" />
+                                <ValidationMessage For="@(()=>_model.FirstName)"
+                                                   class="text-danger small" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    Last Name <span class="text-danger">*</span>
+                                </label>
+                                <InputText @bind-Value="_model.LastName"
+                                           class="form-control"
+                                           placeholder="Last name" />
+                                <ValidationMessage For="@(()=>_model.LastName)"
+                                                   class="text-danger small" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <InputText @bind-Value="_model.Email"
+                                       class="form-control"
+                                       placeholder="email@example.com" />
+                            <ValidationMessage For="@(()=>_model.Email)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Phone Number
+                            </label>
+                            <InputText @bind-Value="_model.PhoneNumber"
+                                       class="form-control"
+                                       placeholder="07700 000000" />
+                            <ValidationMessage For="@(()=>_model.PhoneNumber)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Password <span class="text-danger">*</span>
+                            </label>
+                            <InputText @bind-Value="_model.Password"
+                                       type="password"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.Password)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Confirm Password <span class="text-danger">*</span>
+                            </label>
+                            <InputText @bind-Value="_model.ConfirmPassword"
+                                       type="password"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.ConfirmPassword)"
+                                               class="text-danger small" />
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary"
+                                    disabled="@_isSubmitting">
+                                @if (_isSubmitting)
+                                {
+                                    <span class="spinner-border
+                                                 spinner-border-sm me-1"></span>
+                                }
+                                <i class="bi bi-check-circle"></i>
+                                Add Participant
+                            </button>
+                            <a href="/participants"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Cancel
+                            </a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateParticipantModel _model = new();
+    private bool _isSubmitting = false;
+    private string _errorMessage = string.Empty;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            _isSubmitting = true;
+
+            // Server-side duplicate email check
+            var emailExists = await ParticipantService.EmailExistsAsync(_model.Email);
+            if (emailExists)
+            {
+                _errorMessage = $"Email '{_model.Email}' is already registered.";
+                return;
+            }
+
+            await ParticipantService.CreateParticipantAsync(
+                _model.FirstName, _model.LastName,
+                _model.Email, _model.PhoneNumber);
+
+            Navigation.NavigateTo("/participants");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

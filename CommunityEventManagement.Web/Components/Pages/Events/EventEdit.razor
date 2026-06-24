@@ -1,0 +1,163 @@
+@page "/events/edit/{Id:int}"
+@inject IEventService EventService
+@inject IVenueService VenueService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Event</PageTitle>
+
+<div class="page-header">
+    <div class="container">
+        <h1 class="fw-bold mb-0">
+            <i class="bi bi-pencil"></i> Edit Event
+        </h1>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <LoadingSpinner IsLoading="@_isLoading" />
+
+            @if (!_isLoading && _model != null)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+
+                        <AlertMessage Message="@_errorMessage" Type="danger"
+                                      OnDismissed="@(()=>_errorMessage=string.Empty)" />
+
+                        <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="alert alert-warning" />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Event Name <span class="text-danger">*</span>
+                                </label>
+                                <InputText @bind-Value="_model.Name"
+                                           class="form-control" />
+                                <ValidationMessage For="@(()=>_model.Name)"
+                                                   class="text-danger small" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Description
+                                </label>
+                                <InputTextArea @bind-Value="_model.Description"
+                                               class="form-control" rows="3" />
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Start Date & Time
+                                    </label>
+                                    <InputDate Type="InputDateType.DateTimeLocal"
+                                               @bind-Value="_model.StartDate"
+                                               class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        End Date & Time
+                                    </label>
+                                    <InputDate Type="InputDateType.DateTimeLocal"
+                                               @bind-Value="_model.EndDate"
+                                               class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">
+                                    Venue
+                                </label>
+                                <InputSelect @bind-Value="_model.VenueId"
+                                             class="form-select">
+                                    <option value="">-- No Venue --</option>
+                                    @foreach (var venue in _venues)
+                                    {
+                                        <option value="@venue.Id">
+                                            @venue.Name — @venue.City
+                                        </option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit"
+                                        class="btn btn-primary"
+                                        disabled="@_isSubmitting">
+                                    @if (_isSubmitting)
+                                    {
+                                        <span class="spinner-border
+                                                     spinner-border-sm me-1">
+                                        </span>
+                                    }
+                                    <i class="bi bi-check-circle"></i>
+                                    Save Changes
+                                </button>
+                                <a href="/events/@Id"
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-x"></i> Cancel
+                                </a>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private CreateEventModel? _model;
+    private List<VenueViewModel> _venues = new();
+    private bool _isLoading = true;
+    private bool _isSubmitting = false;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var eventEntity = await EventService.GetEventByIdAsync(Id);
+            if (eventEntity != null)
+                _model = CreateEventModel.FromEntity(eventEntity);
+
+            var venues = await VenueService.GetAllVenuesAsync();
+            _venues = venues.Select(VenueViewModel.FromEntity).ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error loading event: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_model == null) return;
+        try
+        {
+            _isSubmitting = true;
+            await EventService.UpdateEventAsync(
+                Id, _model.Name, _model.Description,
+                _model.StartDate, _model.EndDate, _model.VenueId);
+
+            Navigation.NavigateTo($"/events/{Id}");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

@@ -1,0 +1,11 @@
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/bin/Debug/net8.0/CommunityEventManagement.Domain.deps.json
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/bin/Debug/net8.0/CommunityEventManagement.Domain.dll
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/bin/Debug/net8.0/CommunityEventManagement.Domain.pdb
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.AssemblyInfoInputs.cache
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.AssemblyInfo.cs
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.csproj.CoreCompileInputs.cache
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.dll
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/refint/CommunityEventManagement.Domain.dll
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.pdb
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/ref/CommunityEventManagement.Domain.dll

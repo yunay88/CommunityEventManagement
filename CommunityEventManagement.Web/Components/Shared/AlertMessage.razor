@@ -1,0 +1,33 @@
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <div class="alert alert-@Type alert-dismissible fade show" role="alert">
+        <i class="bi bi-@IconClass me-2"></i>
+        @Message
+        @if (Dismissible)
+        {
+            <button type="button" class="btn-close"
+                    @onclick="Dismiss"></button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public string Type { get; set; } = "info";
+    [Parameter] public bool Dismissible { get; set; } = true;
+    [Parameter] public EventCallback OnDismissed { get; set; }
+
+    private string IconClass => Type switch
+    {
+        "success" => "check-circle-fill",
+        "danger"  => "exclamation-triangle-fill",
+        "warning" => "exclamation-circle-fill",
+        _         => "info-circle-fill"
+    };
+
+    private async Task Dismiss()
+    {
+        Message = string.Empty;
+        await OnDismissed.InvokeAsync();
+    }
+}

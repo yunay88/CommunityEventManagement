@@ -1,0 +1,19 @@
+@if (IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <p class="mt-2 text-muted">@Message</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string Message { get; set; } = "Loading...";
+}
