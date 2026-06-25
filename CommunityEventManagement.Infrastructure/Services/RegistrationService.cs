@@ -26,6 +26,16 @@ namespace CommunityEventManagement.Infrastructure.Services
         // Queue data structure — manages waiting lists per event
         private readonly Dictionary<int, RegistrationQueue> _waitingLists = new();
 
+        /// <summary>
+        /// Alias for GetParticipantRegistrationsAsync – provides clearer naming for UI layer.
+        /// Demonstrates method overloading / forwarding in service layer.
+        /// </summary>
+        public async Task<IEnumerable<Registration>> GetRegistrationsByParticipantAsync(int participantId)
+        {
+            // Forward to canonical method – maintains single source of truth
+            return await GetParticipantRegistrationsAsync(participantId);
+        }
+
         public RegistrationService(
             IUnitOfWork unitOfWork,
             ILogger<RegistrationService> logger)

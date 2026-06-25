@@ -1,3 +1,7 @@
+// FILE: CommunityEventManagement.Infrastructure/Services/ParticipantService.cs
+// REPLACE ENTIRE CreateParticipantAsync method only - lines ~88-133
+// Full file replacement for safety:
+
 using CommunityEventManagement.Domain.Algorithms;
 using CommunityEventManagement.Domain.Entities;
 using CommunityEventManagement.Domain.Exceptions;
@@ -89,7 +93,8 @@ namespace CommunityEventManagement.Infrastructure.Services
             string firstName,
             string lastName,
             string email,
-            string? phoneNumber)
+            string? phoneNumber,
+            string password = "Password@1")
         {
             try
             {
@@ -101,9 +106,10 @@ namespace CommunityEventManagement.Infrastructure.Services
                     throw new RegistrationException(
                         $"A participant with email '{email}' already exists.");
 
-                // Simple password hash for new participants
+                // Hash password the same way SeedData does
+                // SeedData.BCryptHash = Convert.ToBase64String(Encoding.UTF8.GetBytes(password))
                 var passwordHash = Convert.ToBase64String(
-                    System.Text.Encoding.UTF8.GetBytes("DefaultPassword@1"));
+                    System.Text.Encoding.UTF8.GetBytes(password));
 
                 var participant = new Participant(
                     firstName, lastName, email, passwordHash, phoneNumber);

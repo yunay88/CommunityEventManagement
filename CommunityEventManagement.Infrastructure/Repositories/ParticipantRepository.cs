@@ -26,6 +26,18 @@ namespace CommunityEventManagement.Infrastructure.Repositories
                     p.Email == email.ToLowerInvariant());
         }
 
+                public async Task<AppUser?> GetUserByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            // Query the base AppUser set - TPH includes both Participant and Administrator
+            return await _context.Set<AppUser>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        }
+
+
         public async Task<bool> EmailExistsAsync(string email)
         {
             return await _context.Participants

@@ -5,6 +5,7 @@
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.AssemblyInfoInputs.cache
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.AssemblyInfo.cs
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.csproj.CoreCompileInputs.cache
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.sourcelink.json
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.dll
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/refint/CommunityEventManagement.Domain.dll
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Domain/obj/Debug/net8.0/CommunityEventManagement.Domain.pdb

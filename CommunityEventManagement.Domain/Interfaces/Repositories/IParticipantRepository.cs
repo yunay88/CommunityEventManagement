@@ -16,5 +16,12 @@ namespace CommunityEventManagement.Domain.Interfaces.Repositories
 
         /// <summary>Checks if an email address is already registered.</summary>
         Task<bool> EmailExistsAsync(string email);
+        
+        /// <summary>
+        /// Gets any AppUser (Participant or Administrator) by email.
+        /// Used for authentication - resolves TPH inheritance.
+        /// </summary>
+        Task<Entities.AppUser?> GetUserByEmailAsync(string email);
+
     }
 }
