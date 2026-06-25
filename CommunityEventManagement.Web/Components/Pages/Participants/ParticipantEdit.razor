@@ -1,0 +1,140 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Participants/ParticipantEdit.razor *@
+@* CREATE NEW FILE *@
+@page "/participants/edit/{Id:int}"
+@using CommunityEventManagement.Web.Services
+@inject IParticipantService ParticipantService
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Participant</PageTitle>
+
+@if (!AuthState.IsAdmin)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-shield-exclamation"></i> Admin Access Required</h5>
+            <p>Only administrators can edit participants.</p>
+            <a href="/login" class="btn btn-primary btn-sm">Login</a>
+            <a href="/participants" class="btn btn-outline-secondary btn-sm">Back</a>
+        </div>
+    </div>
+}
+else
+{
+<div class="page-header">
+    <div class="container">
+        <h1 class="fw-bold mb-0">
+            <i class="bi bi-person-gear"></i> Edit Participant
+        </h1>
+        <small class="text-light opacity-75">Admin: @AuthState.CurrentUser.FullName</small>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <LoadingSpinner IsLoading="@_loading" />
+            @if (!_loading && _model != null)
+            {
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <AlertMessage Message="@_error" Type="danger"
+                                  OnDismissed="@(()=>_error=string.Empty)" />
+
+                    <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-warning" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    First Name <span class="text-danger">*</span>
+                                </label>
+                                <InputText @bind-Value="_model.FirstName"
+                                           class="form-control" />
+                                <ValidationMessage For="@(()=>_model.FirstName)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    Last Name <span class="text-danger">*</span>
+                                </label>
+                                <InputText @bind-Value="_model.LastName"
+                                           class="form-control" />
+                                <ValidationMessage For="@(()=>_model.LastName)" class="text-danger small" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <InputText @bind-Value="_model.Email"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.Email)" class="text-danger small" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            <InputText @bind-Value="_model.PhoneNumber"
+                                       class="form-control" />
+                            <ValidationMessage For="@(()=>_model.PhoneNumber)" class="text-danger small" />
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@_submitting">
+                                @if (_submitting) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                <i class="bi bi-check-circle"></i> Save Changes
+                            </button>
+                            <a href="/participants/@Id" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private EditParticipantModel? _model;
+    private bool _loading = true;
+    private bool _submitting = false;
+    private string _error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthState.IsAdmin)
+        {
+            Navigation.NavigateTo($"/login?returnUrl=/participants/edit/{Id}");
+            return;
+        }
+        try
+        {
+            var p = await ParticipantService.GetParticipantByIdAsync(Id);
+            if (p != null)
+                _model = EditParticipantModel.FromEntity(p);
+            else
+                _error = "Participant not found.";
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_model == null || !AuthState.IsAdmin) return;
+        try
+        {
+            _submitting = true;
+            await ParticipantService.UpdateParticipantAsync(
+                Id, _model.FirstName, _model.LastName, _model.Email, _model.PhoneNumber);
+            Navigation.NavigateTo($"/participants/{Id}");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _submitting = false; }
+    }
+}

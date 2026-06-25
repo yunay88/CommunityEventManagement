@@ -1,5 +1,10 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Activities/ActivityList.razor *@
+@* REPLACE ENTIRE FILE *@
 @page "/activities"
+@using CommunityEventManagement.Web.Services
 @inject IActivityService ActivityService
+@inject AuthStateService AuthState
+@implements IDisposable
 
 <PageTitle>Activities</PageTitle>
 
@@ -11,11 +16,14 @@
                     <i class="bi bi-lightning"></i> Activities
                 </h1>
             </div>
+            @if (AuthState.IsAdmin)
+            {
             <div class="col-auto">
                 <a href="/activities/create" class="btn btn-primary">
                     <i class="bi bi-plus"></i> Add Activity
                 </a>
             </div>
+            }
         </div>
     </div>
 </div>
@@ -25,6 +33,13 @@
                   OnDismissed="@(() => _success = string.Empty)" />
     <AlertMessage Message="@_error" Type="danger"
                   OnDismissed="@(() => _error = string.Empty)" />
+
+    @if (!AuthState.IsAdmin)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-eye"></i> Read-only. <a href="/login">Login as Admin</a> to manage activities.
+        </div>
+    }
 
     <LoadingSpinner IsLoading="@_loading" />
 
@@ -59,6 +74,8 @@
                                         : a.Description)
                                 </td>
                                 <td>
+                                    @if (AuthState.IsAdmin)
+                                    {
                                     <div class="d-flex gap-1">
                                         <a href="/activities/edit/@a.Id"
                                            class="btn btn-sm btn-outline-secondary">
@@ -69,6 +86,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -94,7 +112,12 @@
     private string _success = string.Empty;
     private string _error = string.Empty;
 
-    protected override async Task OnInitializedAsync() => await Load();
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnAuthStateChanged += AuthChanged;
+        await Load();
+    }
+    private async void AuthChanged() => await InvokeAsync(StateHasChanged);
 
     private async Task Load()
     {
@@ -109,11 +132,13 @@
 
     private void ShowDelete(int id, string name)
     {
+        if (!AuthState.IsAdmin) { _error = "Admin access required."; return; }
         _deleteId = id; _deleteName = name; _showDelete = true;
     }
 
     private async Task DoDelete()
     {
+        if (!AuthState.IsAdmin) { _error = "Admin access required."; return; }
         try
         {
             _showDelete = false;
@@ -123,4 +148,6 @@
         }
         catch (Exception ex) { _error = ex.Message; }
     }
+
+    public void Dispose() => AuthState.OnAuthStateChanged -= AuthChanged;
 }

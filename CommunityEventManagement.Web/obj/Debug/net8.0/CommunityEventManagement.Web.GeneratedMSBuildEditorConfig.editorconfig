@@ -30,6 +30,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BY3Rpdml0aWVzL0FjdGl2aXR5TGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Auth/AccessDenied.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BdXRoL0FjY2Vzc0RlbmllZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BdXRoL0xvZ2luLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Auth/Logout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BdXRoL0xvZ291dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db3VudGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -64,6 +76,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Participants/ParticipantDetail.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJ0aWNpcGFudHMvUGFydGljaXBhbnREZXRhaWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Participants/ParticipantEdit.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9QYXJ0aWNpcGFudHMvUGFydGljaXBhbnRFZGl0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/Components/Pages/Participants/ParticipantList.razor]

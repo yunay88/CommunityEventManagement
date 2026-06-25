@@ -112,6 +112,7 @@
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/CommunityEventManagement.Web.AssemblyInfo.cs
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/CommunityEventManagement.Web.csproj.CoreCompileInputs.cache
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/CommunityEventManagement.Web.MvcApplicationPartsAssemblyInfo.cache
+/Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/CommunityEventManagement.Web.sourcelink.json
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/staticwebassets.build.json
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/staticwebassets.development.json
 /Users/bishalthapa/5AdvanceProgramming/CommunityEventManagement/CommunityEventManagement.Web/obj/Debug/net8.0/staticwebassets/msbuild.CommunityEventManagement.Web.Microsoft.AspNetCore.StaticWebAssets.props

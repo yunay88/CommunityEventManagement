@@ -1,9 +1,14 @@
-﻿@page "/"
+﻿@* FILE: CommunityEventManagement.Web/Components/Pages/Home.razor *@
+@* REPLACE ENTIRE FILE *@
+@page "/"
 @using CommunityEventManagement.Infrastructure.Patterns.Facade
 @using CommunityEventManagement.Domain.Interfaces.Services
 @using CommunityEventManagement.Web.ViewModels
+@using CommunityEventManagement.Web.Services
 @inject EventManagementFacade Facade
 @inject IEventService EventService
+@inject AuthStateService AuthState
+@implements IDisposable
 
 <PageTitle>Home — Community Events</PageTitle>
 
@@ -18,11 +23,27 @@
                 <p class="lead mb-0 opacity-75">
                     Discover, create and manage community events
                 </p>
+                @if (AuthState.IsAuthenticated)
+                {
+                    <p class="mb-0 mt-2 opacity-75 small">
+                        Welcome, @AuthState.CurrentUser.FullName
+                        <span class="badge bg-light text-dark">@AuthState.CurrentUser.Role</span>
+                    </p>
+                }
             </div>
             <div class="col-auto">
-                <a href="/events/create" class="btn btn-primary btn-lg">
-                    <i class="bi bi-plus-circle"></i> Create Event
-                </a>
+                @if (AuthState.IsAdmin)
+                {
+                    <a href="/events/create" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create Event
+                    </a>
+                }
+                else if (!AuthState.IsAuthenticated)
+                {
+                    <a href="/login" class="btn btn-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                }
             </div>
         </div>
     </div>
@@ -100,9 +121,12 @@
                     <div class="empty-state">
                         <i class="bi bi-calendar-x display-3"></i>
                         <h5 class="mt-3">No upcoming events</h5>
+                        @if (AuthState.IsAdmin)
+                        {
                         <a href="/events/create" class="btn btn-primary mt-2">
                             Create the first event
                         </a>
+                        }
                     </div>
                 }
                 else
@@ -178,6 +202,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthState.OnAuthStateChanged += AuthChanged;
+        await LoadAsync();
+    }
+
+    private async void AuthChanged() => await InvokeAsync(StateHasChanged);
+
+    private async Task LoadAsync()
+    {
         try
         {
             _summary = await Facade.GetDashboardSummaryAsync();
@@ -190,5 +222,10 @@
         {
             _isLoading = false;
         }
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= AuthChanged;
     }
 }

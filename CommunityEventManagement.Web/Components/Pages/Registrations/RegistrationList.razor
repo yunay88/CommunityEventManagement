@@ -1,13 +1,29 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Registrations/RegistrationList.razor *@
+@* REPLACE ENTIRE FILE – adds "My Registrations" filter for Participants *@
 @page "/registrations"
+@page "/registrations/my"
+@using CommunityEventManagement.Web.Services
 @inject IRegistrationService RegistrationService
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@implements IDisposable
 
-<PageTitle>Registrations</PageTitle>
+<PageTitle>@(AuthState.IsParticipant ? "My Registrations" : "Registrations")</PageTitle>
 
 <div class="page-header">
     <div class="container">
-        <h1 class="fw-bold mb-0">
-            <i class="bi bi-card-checklist"></i> All Registrations
-        </h1>
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="fw-bold mb-0">
+                    <i class="bi bi-card-checklist"></i> 
+                    @(AuthState.IsParticipant ? "My Registrations" : "All Registrations")
+                </h1>
+                @if (AuthState.IsAuthenticated)
+                {
+                    <small class="text-light opacity-75">@AuthState.CurrentUser.FullName</small>
+                }
+            </div>
+        </div>
     </div>
 </div>
 
@@ -16,6 +32,36 @@
                   OnDismissed="@(() => _success = string.Empty)" />
     <AlertMessage Message="@_error" Type="danger"
                   OnDismissed="@(() => _error = string.Empty)" />
+
+    @if (!AuthState.IsAuthenticated)
+    {
+        <div class="alert alert-warning">
+            Please <a href="/login">login</a> to view your registrations.
+        </div>
+    }
+    else
+    {
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" id="f_all"
+                           name="filter" checked="@(_filterMine == false)"
+                           @onchange="() => SetFilter(false)" 
+                           disabled="@AuthState.IsParticipant" />
+                    <label class="form-check-label" for="f_all">All</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" id="f_mine"
+                           name="filter" checked="@_filterMine"
+                           @onchange="() => SetFilter(true)" />
+                    <label class="form-check-label" for="f_mine">My Registrations</label>
+                </div>
+            </div>
+            <span class="text-muted small">@_registrations.Count registration(s)</span>
+        </div>
+    </div>
 
     <LoadingSpinner IsLoading="@_loading" />
 
@@ -33,6 +79,7 @@
                     <div class="p-5 text-center text-muted">
                         <i class="bi bi-card-checklist display-3"></i>
                         <h5 class="mt-3">No registrations yet</h5>
+                        <a href="/events" class="btn btn-primary mt-2">Browse Events</a>
                     </div>
                 }
                 else
@@ -71,11 +118,10 @@
                                             </span>
                                         </td>
                                         <td>
-                                            @if (r.Status !=
-                                                Domain.Enums.RegistrationStatus.Cancelled)
+                                            @if (r.Status != Domain.Enums.RegistrationStatus.Cancelled 
+                                                && CanCancel(r))
                                             {
-                                                <button class="btn btn-sm
-                                                               btn-outline-danger"
+                                                <button class="btn btn-sm btn-outline-danger"
                                                         @onclick="() => Cancel(r.Id)">
                                                     Cancel
                                                 </button>
@@ -90,6 +136,7 @@
             </div>
         </div>
     }
+    }
 </div>
 
 @code {
@@ -97,15 +144,62 @@
     private bool _loading = true;
     private string _success = string.Empty;
     private string _error = string.Empty;
+    private bool _filterMine = false;
 
-    protected override async Task OnInitializedAsync() => await Load();
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnAuthStateChanged += AuthChanged;
+        // Participants default to "my registrations" only
+        if (AuthState.IsAuthenticated && AuthState.IsParticipant)
+            _filterMine = true;
+        await Load();
+    }
+
+    private async void AuthChanged() => await InvokeAsync(async () => await Load());
+
+    private async Task SetFilter(bool mine)
+    {
+        _filterMine = mine;
+        await Load();
+    }
+
+    private bool CanCancel(RegistrationViewModel r)
+    {
+        if (AuthState.IsAdmin) return true;
+        // Participant can only cancel their own
+        return AuthState.IsAuthenticated && 
+               string.Equals(r.ParticipantEmail, AuthState.CurrentUser.Email, StringComparison.OrdinalIgnoreCase);
+    }
 
     private async Task Load()
     {
         try
         {
             _loading = true;
-            var all = await RegistrationService.GetAllRegistrationsAsync();
+            if (!AuthState.IsAuthenticated)
+            {
+                _registrations = new();
+                return;
+            }
+
+            IEnumerable<CommunityEventManagement.Domain.Entities.Registration> all;
+
+            if (_filterMine && AuthState.UserId.HasValue)
+            {
+                all = await RegistrationService.GetRegistrationsByParticipantAsync(AuthState.UserId.Value);
+            }
+            else if (AuthState.IsParticipant && AuthState.UserId.HasValue)
+            {
+                // Force participant-only view
+                all = await RegistrationService.GetRegistrationsByParticipantAsync(AuthState.UserId.Value);
+                _filterMine = true;
+            }
+            else
+            {
+                // Admin sees all
+                all = await RegistrationService.GetAllRegistrationsAsync();
+            }
+
             _registrations = all.Select(RegistrationViewModel.FromEntity).ToList();
         }
         finally { _loading = false; }
@@ -115,10 +209,13 @@
     {
         try
         {
-            await RegistrationService.CancelRegistrationAsync(id, "Cancelled by admin");
+            var reason = AuthState.IsAdmin ? "Cancelled by admin" : "Cancelled by participant";
+            await RegistrationService.CancelRegistrationAsync(id, reason);
             _success = "Registration cancelled.";
             await Load();
         }
         catch (Exception ex) { _error = ex.Message; }
     }
+
+    public void Dispose() => AuthState.OnAuthStateChanged -= AuthChanged;
 }

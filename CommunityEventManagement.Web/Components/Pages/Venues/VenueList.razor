@@ -1,5 +1,10 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Venues/VenueList.razor *@
+@* REPLACE ENTIRE FILE *@
 @page "/venues"
+@using CommunityEventManagement.Web.Services
 @inject IVenueService VenueService
+@inject AuthStateService AuthState
+@implements IDisposable
 
 <PageTitle>Venues</PageTitle>
 
@@ -11,11 +16,14 @@
                     <i class="bi bi-geo-alt"></i> Venues
                 </h1>
             </div>
+            @if (AuthState.IsAdmin)
+            {
             <div class="col-auto">
                 <a href="/venues/create" class="btn btn-primary">
                     <i class="bi bi-plus"></i> Add Venue
                 </a>
             </div>
+            }
         </div>
     </div>
 </div>
@@ -26,6 +34,13 @@
                   OnDismissed="@(() => _success = string.Empty)" />
     <AlertMessage Message="@_error" Type="danger"
                   OnDismissed="@(() => _error = string.Empty)" />
+
+    @if (!AuthState.IsAdmin)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-eye"></i> Read-only. <a href="/login">Login as Admin</a> to manage venues.
+        </div>
+    }
 
     <LoadingSpinner IsLoading="@_loading" />
 
@@ -56,6 +71,8 @@
                                 @venue.OccupancyRate% occupied
                             </small>
                         </div>
+                        @if (AuthState.IsAdmin)
+                        {
                         <div class="card-footer bg-transparent">
                             <div class="d-flex gap-2">
                                 <a href="/venues/edit/@venue.Id"
@@ -68,6 +85,7 @@
                                 </button>
                             </div>
                         </div>
+                        }
                     </div>
                 </div>
             }
@@ -90,7 +108,12 @@
     private string _success = string.Empty;
     private string _error = string.Empty;
 
-    protected override async Task OnInitializedAsync() => await Load();
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnAuthStateChanged += AuthChanged;
+        await Load();
+    }
+    private async void AuthChanged() => await InvokeAsync(StateHasChanged);
 
     private async Task Load()
     {
@@ -105,11 +128,13 @@
 
     private void ShowDelete(int id, string name)
     {
+        if (!AuthState.IsAdmin) { _error = "Admin access required."; return; }
         _deleteId = id; _deleteName = name; _showDelete = true;
     }
 
     private async Task DoDelete()
     {
+        if (!AuthState.IsAdmin) { _error = "Admin access required."; return; }
         try
         {
             _showDelete = false;
@@ -119,4 +144,6 @@
         }
         catch (Exception ex) { _error = ex.Message; }
     }
+
+    public void Dispose() => AuthState.OnAuthStateChanged -= AuthChanged;
 }

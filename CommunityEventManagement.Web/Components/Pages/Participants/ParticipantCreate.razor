@@ -1,14 +1,31 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Participants/ParticipantCreate.razor *@
+@* REPLACE ENTIRE FILE *@
 @page "/participants/create"
+@using CommunityEventManagement.Web.Services
 @inject IParticipantService ParticipantService
+@inject AuthStateService AuthState
 @inject NavigationManager Navigation
 
 <PageTitle>Add Participant</PageTitle>
 
+@if (!AuthState.IsAdmin)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-shield-exclamation"></i> Admin Access Required</h5>
+            <p>Only administrators can add participants.</p>
+            <a href="/login" class="btn btn-primary btn-sm">Login</a>
+        </div>
+    </div>
+}
+else
+{
 <div class="page-header">
     <div class="container">
         <h1 class="fw-bold mb-0">
             <i class="bi bi-person-plus"></i> Add Participant
         </h1>
+        <small class="text-light opacity-75">Admin: @AuthState.CurrentUser.FullName</small>
     </div>
 </div>
 
@@ -114,14 +131,24 @@
         </div>
     </div>
 </div>
+}
 
 @code {
     private CreateParticipantModel _model = new();
     private bool _isSubmitting = false;
     private string _errorMessage = string.Empty;
 
+    protected override void OnInitialized()
+    {
+        if (!AuthState.IsAdmin)
+        {
+            Navigation.NavigateTo("/login?returnUrl=/participants/create");
+        }
+    }
+
     private async Task HandleSubmit()
     {
+        if (!AuthState.IsAdmin) { _errorMessage = "Admin access required."; return; }
         try
         {
             _isSubmitting = true;
@@ -134,9 +161,11 @@
                 return;
             }
 
+            // Pass password through to service (now supports password parameter)
             await ParticipantService.CreateParticipantAsync(
                 _model.FirstName, _model.LastName,
-                _model.Email, _model.PhoneNumber);
+                _model.Email, _model.PhoneNumber,
+                _model.Password);
 
             Navigation.NavigateTo("/participants");
         }

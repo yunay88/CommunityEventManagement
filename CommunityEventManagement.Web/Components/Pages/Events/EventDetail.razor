@@ -1,8 +1,13 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Events/EventDetail.razor *@
+@* FIXED VERSION – uses EventDetailViewModel which has Registrations + Activities *@
 @page "/events/{Id:int}"
+@using CommunityEventManagement.Web.Services
 @inject IEventService EventService
 @inject IRegistrationService RegistrationService
 @inject IParticipantService ParticipantService
+@inject AuthStateService AuthState
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <PageTitle>@(_event?.Name ?? "Event Detail")</PageTitle>
 
@@ -30,10 +35,13 @@
                     </span>
                 </div>
                 <div class="col-auto d-flex gap-2">
-                    <a href="/events/edit/@_event.Id"
-                       class="btn btn-outline-light">
-                        <i class="bi bi-pencil"></i> Edit
-                    </a>
+                    @if (AuthState.IsAdmin)
+                    {
+                        <a href="/events/edit/@_event.Id"
+                           class="btn btn-outline-light">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                    }
                     <a href="/events"
                        class="btn btn-outline-light">
                         <i class="bi bi-arrow-left"></i> Back
@@ -149,7 +157,9 @@
                     </div>
                 }
 
-                <!-- Registrations -->
+                <!-- Registrations (Admin only) -->
+                @if (AuthState.IsAdmin)
+                {
                 <div class="card shadow-sm">
                     <div class="card-header bg-white fw-bold">
                         <i class="bi bi-people text-success"></i>
@@ -191,11 +201,11 @@
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    @if (reg.Status != Domain.Enums.RegistrationStatus.Cancelled)
+                                                    @if (reg.Status != CommunityEventManagement.Domain.Enums.RegistrationStatus.Cancelled)
                                                     {
                                                         <button class="btn btn-sm
                                                                        btn-outline-danger"
-                                                                @onclick="() => CancelReg(reg.Id)">
+                                                                @onclick="() => CancelRegistration(reg.Id)">
                                                             Cancel
                                                         </button>
                                                     }
@@ -208,87 +218,69 @@
                         }
                     </div>
                 </div>
+                }
             </div>
 
-            <!-- Sidebar -->
+            <!-- Sidebar: Register -->
             <div class="col-lg-4">
-
-                <!-- Register Panel -->
-                @if (_event.IsUpcoming || _event.IsActive)
-                {
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-primary text-white fw-bold">
-                            <i class="bi bi-person-plus"></i>
-                            Register Participant
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    Select Participant
-                                </label>
-                                <select class="form-select"
-                                        @bind="_selectedParticipantId">
-                                    <option value="0">
-                                        -- Select Participant --
-                                    </option>
-                                    @foreach (var p in _participants)
-                                    {
-                                        <option value="@p.Id">
-                                            @p.FullName
-                                        </option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    Notes (optional)
-                                </label>
-                                <textarea class="form-control" rows="2"
-                                          @bind="_registrationNotes"
-                                          placeholder="Any notes...">
-                                </textarea>
-                            </div>
-                            <button class="btn btn-primary w-100"
-                                    @onclick="RegisterParticipant"
-                                    disabled="@(_selectedParticipantId == 0
-                                               || _isRegistering)">
-                                @if (_isRegistering)
-                                {
-                                    <span class="spinner-border
-                                                 spinner-border-sm me-1"></span>
-                                }
-                                <i class="bi bi-person-check"></i> Register
-                            </button>
-                        </div>
-                    </div>
-                }
-
-                <!-- Stats Card -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white fw-bold">
-                        <i class="bi bi-bar-chart"></i> Statistics
+                <div class="card shadow-sm sticky-top" style="top: 1rem;">
+                    <div class="card-header bg-success text-white fw-bold">
+                        <i class="bi bi-ticket-perforated"></i>
+                        Register for this Event
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Participants</span>
-                            <strong>@_event.ParticipantCount</strong>
-                        </div>
-                        @if (_event.VenueMaxCapacity.HasValue)
+                        @if (!AuthState.IsAuthenticated)
                         {
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Venue Capacity</span>
-                                <strong>@_event.VenueMaxCapacity</strong>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Occupancy</span>
-                                <strong>@_event.VenueOccupancyRate%</strong>
-                            </div>
-                            <div class="progress" style="height:8px;">
-                                <div class="progress-bar"
-                                     style="width:@_event.VenueOccupancyRate%">
-                                </div>
+                            <p class="text-muted small">Please log in to register.</p>
+                            <a href="/login?returnUrl=/events/@Id" class="btn btn-primary w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> Login to Register
+                            </a>
+                        }
+                        else if (AuthState.IsAdmin)
+                        {
+                            <p class="text-muted small">Admins manage registrations in the table opposite.</p>
+                            <div class="alert alert-info small py-2">
+                                Logged in as Admin: @AuthState.CurrentUser.FullName
                             </div>
                         }
+                        else
+                        {
+                            @if (_isRegistered)
+                            {
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    You are registered for this event!
+                                </div>
+                                <button class="btn btn-outline-danger w-100"
+                                        @onclick="CancelMyRegistration"
+                                        disabled="@_isRegistering">
+                                    Cancel My Registration
+                                </button>
+                            }
+                            else
+                            {
+                                <p class="small text-muted mb-2">
+                                    Registering as:<br />
+                                    <strong>@AuthState.CurrentUser.FullName</strong><br />
+                                    @AuthState.CurrentUser.Email
+                                </p>
+                                <button class="btn btn-success w-100"
+                                        @onclick="RegisterMe"
+                                        disabled="@_isRegistering">
+                                    @if (_isRegistering)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    <i class="bi bi-ticket-perforated"></i>
+                                    Register Now
+                                </button>
+                            }
+                        }
+                        <hr />
+                        <div class="small text-muted">
+                            <i class="bi bi-people"></i>
+                            @_event.ParticipantCount participant(s) registered
+                        </div>
                     </div>
                 </div>
             </div>
@@ -296,49 +288,40 @@
     </div>
 }
 
-@if (!_isLoading && _event == null)
-{
-    <div class="container py-5 text-center">
-        <i class="bi bi-calendar-x display-1 text-muted"></i>
-        <h3 class="mt-3">Event Not Found</h3>
-        <a href="/events" class="btn btn-primary mt-2">Back to Events</a>
-    </div>
-}
-
 @code {
     [Parameter] public int Id { get; set; }
 
     private EventDetailViewModel? _event;
-    private List<ParticipantViewModel> _participants = new();
     private bool _isLoading = true;
     private bool _isRegistering = false;
-    private int _selectedParticipantId;
-    private string _registrationNotes = string.Empty;
     private string _successMessage = string.Empty;
     private string _errorMessage = string.Empty;
+    private bool _isRegistered = false;
+    private int? _myRegistrationId;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadDataAsync();
+        AuthState.OnAuthStateChanged += AuthChanged;
+        await LoadAsync();
     }
 
-    private async Task LoadDataAsync()
+    private async void AuthChanged() => await InvokeAsync(async () => await LoadAsync());
+
+    private async Task LoadAsync()
     {
         try
         {
             _isLoading = true;
-            var eventEntity = await EventService.GetEventWithDetailsAsync(Id);
-            _event = eventEntity != null
-                ? EventDetailViewModel.FromEntity(eventEntity)
-                : null;
-
-            var participants = await ParticipantService.GetAllParticipantsAsync();
-            _participants = participants
-                .Select(ParticipantViewModel.FromEntity).ToList();
+            var entity = await EventService.GetEventWithDetailsAsync(Id);
+            if (entity != null)
+            {
+                _event = EventDetailViewModel.FromEntity(entity);
+                await CheckMyRegistrationAsync();
+            }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error loading event: {ex.Message}";
+            _errorMessage = ex.Message;
         }
         finally
         {
@@ -346,20 +329,42 @@
         }
     }
 
-    private async Task RegisterParticipant()
+    private async Task CheckMyRegistrationAsync()
     {
-        if (_selectedParticipantId == 0) return;
+        _isRegistered = false;
+        _myRegistrationId = null;
+        if (AuthState.IsAuthenticated && AuthState.UserId.HasValue && _event != null)
+        {
+            var myReg = _event.Registrations.FirstOrDefault(r => 
+                string.Equals(r.ParticipantEmail, AuthState.CurrentUser.Email, StringComparison.OrdinalIgnoreCase));
+            if (myReg != null)
+            {
+                _isRegistered = true;
+                _myRegistrationId = myReg.Id;
+            }
+        }
+        await Task.CompletedTask;
+    }
 
+    private async Task RegisterMe()
+    {
+        if (!AuthState.IsAuthenticated || !AuthState.UserId.HasValue)
+        {
+            Navigation.NavigateTo($"/login?returnUrl=/events/{Id}");
+            return;
+        }
         try
         {
             _isRegistering = true;
-            await RegistrationService.RegisterParticipantAsync(
-                _selectedParticipantId, Id, _registrationNotes);
-
-            _successMessage = "Participant registered successfully!";
-            _selectedParticipantId = 0;
-            _registrationNotes = string.Empty;
-            await LoadDataAsync();
+            _errorMessage = string.Empty;
+            var reg = await RegistrationService.RegisterParticipantAsync(AuthState.UserId.Value, Id);
+            _successMessage = "Successfully registered for this event!";
+            await LoadAsync();
+        }
+        catch (CommunityEventManagement.Domain.Exceptions.DuplicateRegistrationException ex)
+        {
+            _errorMessage = ex.Message;
+            await CheckMyRegistrationAsync();
         }
         catch (Exception ex)
         {
@@ -371,17 +376,37 @@
         }
     }
 
-    private async Task CancelReg(int registrationId)
+    private async Task CancelMyRegistration()
     {
+        if (!_myRegistrationId.HasValue) return;
         try
         {
-            await RegistrationService.CancelRegistrationAsync(registrationId);
-            _successMessage = "Registration cancelled.";
-            await LoadDataAsync();
+            _isRegistering = true;
+            await RegistrationService.CancelRegistrationAsync(_myRegistrationId.Value, "Cancelled by participant");
+            _successMessage = "Your registration has been cancelled.";
+            await LoadAsync();
         }
         catch (Exception ex)
         {
             _errorMessage = ex.Message;
         }
+        finally { _isRegistering = false; }
+    }
+
+    private async Task CancelRegistration(int registrationId)
+    {
+        if (!AuthState.IsAdmin) { _errorMessage = "Admin access required."; return; }
+        try
+        {
+            await RegistrationService.CancelRegistrationAsync(registrationId, "Cancelled by admin");
+            _successMessage = "Registration cancelled.";
+            await LoadAsync();
+        }
+        catch (Exception ex) { _errorMessage = ex.Message; }
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= AuthChanged;
     }
 }

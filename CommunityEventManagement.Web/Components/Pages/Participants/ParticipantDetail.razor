@@ -1,144 +1,54 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Participants/ParticipantDetail.razor *@
+@* REPLACE ENTIRE FILE – add Auth gating *@
 @page "/participants/{Id:int}"
+@using CommunityEventManagement.Web.Services
 @inject IParticipantService ParticipantService
+@inject AuthStateService AuthState
 @inject NavigationManager Navigation
 
 <PageTitle>Participant Detail</PageTitle>
 
-<LoadingSpinner IsLoading="@_isLoading" />
+<LoadingSpinner IsLoading="@_loading" />
 
-@if (!_isLoading && _participant != null)
+@if (!_loading && _p != null)
 {
-    <div class="page-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h1 class="fw-bold mb-0">
-                        <i class="bi bi-person-circle"></i>
-                        @_participant.GetFullName()
-                    </h1>
-                    <p class="mb-0 opacity-75">@_participant.Email</p>
-                </div>
-                <div class="col-auto">
-                    <a href="/participants" class="btn btn-outline-light">
-                        <i class="bi bi-arrow-left"></i> Back
+<div class="page-header">
+    <div class="container">
+        <h1 class="fw-bold mb-0">@_p.FullName</h1>
+        <small class="text-light opacity-75">@_p.Email</small>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <p><strong>Email:</strong> @_p.Email</p>
+            <p><strong>Phone:</strong> @(_p.PhoneNumber ?? "—")</p>
+            <p><strong>Active Registrations:</strong> @_p.ActiveRegistrations</p>
+            <p><strong>Joined:</strong> @_p.CreatedAt.ToString("dd MMM yyyy")</p>
+            <div class="d-flex gap-2">
+                <a href="/participants" class="btn btn-outline-secondary">Back</a>
+                @if (AuthState.IsAdmin)
+                {
+                    <a href="/participants/edit/@Id" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Edit
                     </a>
-                </div>
+                }
             </div>
         </div>
     </div>
-
-    <div class="container pb-5">
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white fw-bold">
-                        <i class="bi bi-person"></i> Profile
-                    </div>
-                    <div class="card-body">
-                        <dl class="row mb-0">
-                            <dt class="col-sm-5 text-muted">Full Name</dt>
-                            <dd class="col-sm-7">
-                                @_participant.GetFullName()
-                            </dd>
-                            <dt class="col-sm-5 text-muted">Email</dt>
-                            <dd class="col-sm-7">@_participant.Email</dd>
-                            <dt class="col-sm-5 text-muted">Phone</dt>
-                            <dd class="col-sm-7">
-                                @(_participant.PhoneNumber ?? "—")
-                            </dd>
-                            <dt class="col-sm-5 text-muted">Joined</dt>
-                            <dd class="col-sm-7">
-                                @_participant.CreatedAt.ToString("dd/MM/yyyy")
-                            </dd>
-                            <dt class="col-sm-5 text-muted">Active Regs</dt>
-                            <dd class="col-sm-7">
-                                <span class="badge bg-success">
-                                    @_participant.GetActiveRegistrationsCount()
-                                </span>
-                            </dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white fw-bold">
-                        <i class="bi bi-card-checklist text-primary"></i>
-                        Registrations (@_participant.Registrations.Count)
-                    </div>
-                    <div class="card-body p-0">
-                        @if (!_participant.Registrations.Any())
-                        {
-                            <div class="p-4 text-center text-muted">
-                                No registrations yet.
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Event</th>
-                                            <th>Date</th>
-                                            <th>Registered</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var reg in _participant.Registrations)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    <a href="/events/@reg.EventId">
-                                                        @reg.Event?.Name
-                                                    </a>
-                                                </td>
-                                                <td>
-                                                    @reg.Event?.StartDate
-                                                        .ToString("dd/MM/yyyy")
-                                                </td>
-                                                <td>
-                                                    @reg.RegistrationDate
-                                                        .ToString("dd/MM/yyyy")
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-@(
-                                                        reg.Status ==
-                                                        Domain.Enums.RegistrationStatus.Confirmed
-                                                        ? "success" : "secondary")">
-                                                        @reg.Status
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
-    private Participant? _participant;
-    private bool _isLoading = true;
+    private ParticipantViewModel? _p;
+    private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _participant = await ParticipantService
-                .GetParticipantWithRegistrationsAsync(Id);
-        }
-        finally
-        {
-            _isLoading = false;
-        }
+        var entity = await ParticipantService.GetParticipantWithRegistrationsAsync(Id);
+        if (entity != null) _p = ParticipantViewModel.FromEntity(entity);
+        _loading = false;
     }
 }

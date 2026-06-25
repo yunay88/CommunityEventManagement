@@ -1,3 +1,6 @@
+// FILE: CommunityEventManagement.Web/ViewModels/AuthViewModels.cs
+// REPLACE ENTIRE FILE
+
 using System.ComponentModel.DataAnnotations;
 
 namespace CommunityEventManagement.Web.ViewModels
@@ -29,6 +32,7 @@ namespace CommunityEventManagement.Web.ViewModels
     public class UserSessionViewModel
     {
         public bool IsAuthenticated { get; set; }
+        public int? UserId { get; set; }
         public string? Email { get; set; }
         public string? FullName { get; set; }
         public string? Role { get; set; }

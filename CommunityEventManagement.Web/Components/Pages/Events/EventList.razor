@@ -1,10 +1,15 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Events/EventList.razor *@
+@* REPLACE ENTIRE FILE *@
 @page "/events"
 @using CommunityEventManagement.Infrastructure.Patterns.Facade
 @using CommunityEventManagement.Domain.Interfaces.Services
 @using CommunityEventManagement.Web.ViewModels
+@using CommunityEventManagement.Web.Services
 @inject IEventService EventService
 @inject IVenueService VenueService
+@inject AuthStateService AuthState
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <PageTitle>Events — Community Events</PageTitle>
 
@@ -15,12 +20,22 @@
                 <h1 class="fw-bold mb-0">
                     <i class="bi bi-calendar3"></i> Events
                 </h1>
+                @if (AuthState.IsAuthenticated)
+                {
+                    <small class="text-light opacity-75">
+                        Logged in as @AuthState.CurrentUser.FullName
+                        <span class="badge bg-light text-dark ms-1">@AuthState.CurrentUser.Role</span>
+                    </small>
+                }
             </div>
-            <div class="col-auto">
-                <a href="/events/create" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Create Event
-                </a>
-            </div>
+            @if (AuthState.IsAdmin)
+            {
+                <div class="col-auto">
+                    <a href="/events/create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create Event
+                    </a>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -105,6 +120,12 @@
                     <span class="badge bg-info ms-2">Filtered</span>
                 }
             </span>
+            @if (!AuthState.IsAuthenticated)
+            {
+                <span class="text-muted small">
+                    <a href="/login">Login</a> to register for events
+                </span>
+            }
         </div>
 
         @if (!_events.Any())
@@ -113,9 +134,12 @@
                 <i class="bi bi-calendar-x display-3"></i>
                 <h5 class="mt-3">No events found</h5>
                 <p class="text-muted">Try adjusting your filters</p>
-                <a href="/events/create" class="btn btn-primary">
-                    Create Event
-                </a>
+                @if (AuthState.IsAdmin)
+                {
+                    <a href="/events/create" class="btn btn-primary">
+                        Create Event
+                    </a>
+                }
             </div>
         }
         else
@@ -182,14 +206,17 @@
                                               btn-sm flex-grow-1">
                                         <i class="bi bi-eye"></i> View
                                     </a>
-                                    <a href="/events/edit/@evt.Id"
-                                       class="btn btn-outline-secondary btn-sm">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button class="btn btn-outline-danger btn-sm"
-                                            @onclick="() => ShowDeleteConfirm(evt.Id, evt.Name)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    @if (AuthState.IsAdmin)
+                                    {
+                                        <a href="/events/edit/@evt.Id"
+                                           class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                @onclick="() => ShowDeleteConfirm(evt.Id, evt.Name)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -221,8 +248,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthState.OnAuthStateChanged += AuthChanged;
         await LoadDataAsync();
     }
+
+    private async void AuthChanged() => await InvokeAsync(StateHasChanged);
 
     private async Task LoadDataAsync()
     {
@@ -259,6 +289,11 @@
 
     private void ShowDeleteConfirm(int id, string name)
     {
+        if (!AuthState.IsAdmin)
+        {
+            _errorMessage = "Admin access required.";
+            return;
+        }
         _deleteEventId = id;
         _deleteEventName = name;
         _showDeleteDialog = true;
@@ -277,5 +312,10 @@
         {
             _errorMessage = $"Error deleting event: {ex.Message}";
         }
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= AuthChanged;
     }
 }

@@ -1,0 +1,173 @@
+@page "/login"
+@using CommunityEventManagement.Web.Services
+@using CommunityEventManagement.Web.ViewModels
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Login – Community Events</PageTitle>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    </h4>
+                    <small>Community Event Management System</small>
+                </div>
+                <div class="card-body p-4">
+                    <AlertMessage Message="@_errorMessage" Type="danger"
+                                  OnDismissed="@(() => _errorMessage = string.Empty)" />
+                    <AlertMessage Message="@_successMessage" Type="success"
+                                  OnDismissed="@(() => _successMessage = string.Empty)" />
+
+                    <EditForm Model="@_model" OnValidSubmit="HandleLoginAsync">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-envelope"></i> Email Address
+                            </label>
+                            <InputText @bind-Value="_model.Email"
+                                      class="form-control form-control-lg"
+                                      placeholder="you@example.com" />
+                            <ValidationMessage For="@(() => _model.Email)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-lock"></i> Password
+                            </label>
+                            <InputText @bind-Value="_model.Password"
+                                      type="password"
+                                      class="form-control form-control-lg"
+                                      placeholder="••••••••" />
+                            <ValidationMessage For="@(() => _model.Password)" />
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <InputCheckbox @bind-Value="_model.RememberMe"
+                                          class="form-check-input"
+                                          id="remember" />
+                            <label class="form-check-label" for="remember">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary btn-lg w-100"
+                                disabled="@_isProcessing">
+                            @if (_isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Signing in...</span>
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-box-arrow-in-right"></i> Sign In</span>
+                            }
+                        </button>
+
+                        <ValidationSummary class="text-danger mt-3" />
+                    </EditForm>
+
+                    <hr class="my-4" />
+
+                    <div class="card bg-light border-0">
+                        <div class="card-body py-3">
+                            <h6 class="fw-bold small text-muted mb-2">
+                                <i class="bi bi-info-circle"></i> Demo Accounts
+                            </h6>
+                            <div class="small">
+                                <div class="mb-2">
+                                    <strong>Administrator:</strong><br />
+                                    <code>admin@communityevents.com</code><br />
+                                    Password: <code>Admin@1234</code>
+                                    <button class="btn btn-sm btn-outline-primary ms-2"
+                                            @onclick='() => FillDemo("admin@communityevents.com", "Admin@1234")'
+                                            type="button">
+                                        Use
+                                    </button>
+                                </div>
+                                <div>
+                                    <strong>Participant:</strong><br />
+                                    <code>alice@example.com</code><br />
+                                    Password: <code>Password@1</code>
+                                    <button class="btn btn-sm btn-outline-success ms-2"
+                                            @onclick='() => FillDemo("alice@example.com", "Password@1")'
+                                            type="button">
+                                        Use
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center text-muted small bg-white">
+                    <i class="bi bi-shield-lock"></i>
+                    Role-based access: Admin / Participant
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginViewModel _model = new();
+    private string _errorMessage = string.Empty;
+    private string _successMessage = string.Empty;
+    private bool _isProcessing = false;
+
+    protected override void OnInitialized()
+    {
+        if (AuthState.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/events");
+        }
+    }
+
+    private async Task HandleLoginAsync()
+    {
+        _errorMessage = string.Empty;
+        _successMessage = string.Empty;
+        _isProcessing = true;
+
+        try
+        {
+            var success = await AuthState.LoginAsync(_model.Email, _model.Password);
+
+            if (success)
+            {
+                _successMessage = $"Welcome back, {AuthState.CurrentUser.FullName}!";
+                await Task.Delay(300);
+                Navigation.NavigateTo("/events", forceLoad: false);
+            }
+            else
+            {
+                _errorMessage = "Invalid email or password. Please try again.";
+                _model.Password = string.Empty;
+            }
+        }
+        catch (CommunityEventManagement.Domain.Exceptions.AuthenticationException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Login error: {ex.Message}";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private void FillDemo(string email, string password)
+    {
+        _model.Email = email;
+        _model.Password = password;
+        _errorMessage = string.Empty;
+    }
+}

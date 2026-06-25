@@ -1,6 +1,11 @@
+@* FILE: CommunityEventManagement.Web/Components/Pages/Participants/ParticipantList.razor *@
+@* REPLACE ENTIRE FILE *@
 @page "/participants"
+@using CommunityEventManagement.Web.Services
 @inject IParticipantService ParticipantService
+@inject AuthStateService AuthState
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <PageTitle>Participants</PageTitle>
 
@@ -12,11 +17,14 @@
                     <i class="bi bi-people"></i> Participants
                 </h1>
             </div>
+            @if (AuthState.IsAdmin)
+            {
             <div class="col-auto">
                 <a href="/participants/create" class="btn btn-primary">
                     <i class="bi bi-person-plus"></i> Add Participant
                 </a>
             </div>
+            }
         </div>
     </div>
 </div>
@@ -28,25 +36,20 @@
     <AlertMessage Message="@_errorMessage" Type="danger"
                   OnDismissed="@(() => _errorMessage = string.Empty)" />
 
-    <!-- Search -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="input-group">
-                <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input class="form-control"
-                       placeholder="Search by name or email..."
-                       @bind="_searchTerm"
-                       @bind:event="oninput" />
-                @if (!string.IsNullOrWhiteSpace(_searchTerm))
-                {
-                    <button class="btn btn-outline-secondary"
-                            @onclick="() => _searchTerm = string.Empty">
-                        <i class="bi bi-x"></i>
-                    </button>
-                }
-            </div>
+    @if (!AuthState.IsAdmin)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-eye"></i> Read-only view. 
+            <a href="/login">Login as Admin</a> to manage participants.
+        </div>
+    }
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+            <input class="form-control"
+                   placeholder="Search participants..."
+                   @bind="_searchTerm"
+                   @bind:event="oninput" />
         </div>
     </div>
 
@@ -112,12 +115,19 @@
                                                           btn-outline-primary">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <button class="btn btn-sm
-                                                               btn-outline-danger"
-                                                        @onclick="() =>
-                                                            ShowDelete(p.Id, p.FullName)">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
+                                                @if (AuthState.IsAdmin)
+                                                {
+                                                    <a href="/participants/edit/@p.Id"
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm
+                                                                   btn-outline-danger"
+                                                            @onclick="() =>
+                                                                ShowDelete(p.Id, p.FullName)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
                                             </div>
                                         </td>
                                     </tr>
@@ -150,8 +160,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthState.OnAuthStateChanged += AuthChanged;
         await LoadAsync();
     }
+
+    private async void AuthChanged() => await InvokeAsync(StateHasChanged);
 
     private async Task LoadAsync()
     {
@@ -173,6 +186,7 @@
 
     private void ShowDelete(int id, string name)
     {
+        if (!AuthState.IsAdmin) { _errorMessage = "Admin access required."; return; }
         _deleteId = id;
         _deleteName = name;
         _showDelete = true;
@@ -180,6 +194,7 @@
 
     private async Task ConfirmDelete()
     {
+        if (!AuthState.IsAdmin) { _errorMessage = "Admin access required."; return; }
         try
         {
             _showDelete = false;
@@ -191,5 +206,10 @@
         {
             _errorMessage = ex.Message;
         }
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= AuthChanged;
     }
 }
